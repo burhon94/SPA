@@ -8,22 +8,30 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/burhon94/SPA.git'
+                node {
+                    git branch: 'main', url: 'https://github.com/your-username/your-repo.git'
+                }
             }
         }
         stage('Install dependencies') {
             steps {
-                sh 'npm install'
+                node {
+                    sh 'npm install'
+                }
             }
         }
         stage('Run tests') {
             steps {
-                sh 'npm test'
+                node {
+                    sh 'npm test'
+                }
             }
         }
         stage('Build') {
             steps {
-                sh 'npm run build'
+                node {
+                    sh 'npm run build'
+                }
             }
         }
     }
