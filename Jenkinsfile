@@ -2,71 +2,35 @@ pipeline {
     agent any
 
     environment {
-        NODE_VERSION = '16' // Задайте версию Node.js, подходящую для вашего проекта
+        NODE_HOME = tool name: 'NodeJS', type: 'NodeJSInstallation'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo 'Checking out repository...'
-                checkout scm
+                git branch: 'main', url: 'https://github.com/your-username/your-repo.git'
             }
         }
-
-        stage('Install Dependencies') {
+        stage('Install dependencies') {
             steps {
-                script {
-                    echo 'Installing dependencies...'
-                    // Настройка Node.js
-                    sh '''
-                    export NVM_DIR=$HOME/.nvm
-                    . $NVM_DIR/nvm.sh
-                    nvm install ${NODE_VERSION}
-                    nvm use ${NODE_VERSION}
-                    npm install
-                    '''
-                }
+                sh 'npm install'
             }
         }
-
-        stage('Build Project') {
+        stage('Run tests') {
             steps {
-                script {
-                    echo 'Building project...'
-                    sh '''
-                    export NVM_DIR=$HOME/.nvm
-                    . $NVM_DIR/nvm.sh
-                    nvm use ${NODE_VERSION}
-                    npm run build
-                    '''
-                }
+                sh 'npm test'
             }
         }
-
-        stage('Post-Build Verification') {
+        stage('Build') {
             steps {
-                echo 'Running post-build verification...'
-                sh '''
-                export NVM_DIR=$HOME/.nvm
-                . $NVM_DIR/nvm.sh
-                nvm use ${NODE_VERSION}
-                npm run test
-                '''
+                sh 'npm run build'
             }
         }
-
     }
 
     post {
         always {
-            echo 'Cleaning up...'
-            cleanWs() // Очищаем рабочую область после выполнения
-        }
-        success {
-            echo 'Build successful!'
-        }
-        failure {
-            echo 'Build failed!'
+            cleanWs()
         }
     }
 }
