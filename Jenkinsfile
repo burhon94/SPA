@@ -14,41 +14,25 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps {
-                echo 'Installing dependencies...'
-                sh '''
-                export NVM_DIR=$HOME/.nvm
-                . $NVM_DIR/nvm.sh
-                nvm install ${NODE_VERSION}
-                nvm use ${NODE_VERSION}
-                npm install
-                '''
-            }
-        }
-		
-        stage('Run Tests') {
-            steps {
-                echo 'Running tests...'
-                sh '''
-                export NVM_DIR=$HOME/.nvm
-                . $NVM_DIR/nvm.sh
-                nvm use ${NODE_VERSION}
-                npm test
-                '''
-            }
-        }
-		
-        stage('Build') {
-            steps {
-                echo 'Building project...'
-                sh '''
-                export NVM_DIR=$HOME/.nvm
-                . $NVM_DIR/nvm.sh
-                nvm use ${NODE_VERSION}
-                npm run build
-                '''
-            }
-        }
+			steps {
+				echo 'Installing dependencies...'
+				sh 'npm install'
+			}
+		}
+
+		stage('Run Tests') {
+			steps {
+				echo 'Running tests...'
+				sh 'npm test'
+			}
+		}
+
+		stage('Build') {
+			steps {
+				echo 'Building project...'
+				sh 'npm run build'
+			}
+		}
 
         stage('Deploy') {
             when {
