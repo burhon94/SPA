@@ -1,36 +1,80 @@
+
+
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+
+
 pipeline {
-    agent { label 'master' } // Указываем узел, где будут выполняться шаги
+    agent any
 
     environment {
-        NODE_HOME = tool name: 'NodeJS', type: 'NodeJSInstallation'
+        NODE_VERSION = '16' // Задайте версию Node.js, подходящую для вашего проекта
     }
 
     stages {
         stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/burhon94/SPA.git'
+           steps {
+                node('master') { // Указываем label
+                    git branch: 'main', url: 'https://github.com/burhon94/SPA.git'
+                }
             }
         }
-        stage('Install dependencies') {
+
+        stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                node('master') {
+				    echo 'Installing dependencies...'
+                    sh 'npm install'
+                }
             }
         }
-        stage('Run tests') {
+		
+		stage('Run tests') {
             steps {
-                sh 'npm test'
+                node('master') {
+                    sh 'npm test'
+                }
             }
         }
+		
         stage('Build') {
             steps {
-                sh 'npm run build'
+                node('master') {
+				    echo 'Building project...'
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'master' // Выполнять деплой только для основной ветки
+            }
+            steps {
+                echo 'Deploying application...'
+                sh '''
+                # Пример деплоя: переместить файлы сборки в нужное место
+                cp -R build/* /var/www/html/ # Убедитесь, что путь правильный для вашего сервера
+                '''
             }
         }
     }
 
     post {
         always {
-            cleanWs() // Очистка рабочего пространства
+            echo 'Cleaning up...'
+            cleanWs() // Очищаем рабочую область после выполнения
+        }
+        success {
+            echo 'Build successful!'
+        }
+        failure {
+            echo 'Build failed!'
         }
     }
 }
