@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'master' } // Указываем узел, где будут выполняться шаги
 
     environment {
         NODE_HOME = tool name: 'NodeJS', type: 'NodeJSInstallation'
@@ -8,37 +8,29 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                node('master') { // Указываем label
-                    git branch: 'main', url: 'https://github.com/burhon94/SPA.git'
-                }
+                git branch: 'main', url: 'https://github.com/burhon94/SPA.git'
             }
         }
         stage('Install dependencies') {
             steps {
-                node('master') {
-                    sh 'npm install'
-                }
+                sh 'npm install'
             }
         }
         stage('Run tests') {
             steps {
-                node('master') {
-                    sh 'npm test'
-                }
+                sh 'npm test'
             }
         }
         stage('Build') {
             steps {
-                node('master') {
-                    sh 'npm run build'
-                }
+                sh 'npm run build'
             }
         }
     }
 
     post {
         always {
-            cleanWs()
+            cleanWs() // Очистка рабочего пространства
         }
     }
 }
