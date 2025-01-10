@@ -7,36 +7,46 @@ pipeline {
 
     stages {
         stage('Checkout') {
-           steps {
-                node('master') { // Указываем label
-                    git branch: 'main', url: 'https://github.com/burhon94/SPA.git'
-                }
+            steps {
+                echo 'Checking out repository...'
+                git branch: 'master', url: 'https://github.com/burhon94/SPA.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                node('master') {
-				    echo 'Installing dependencies...'
-                    sh 'npm install'
-                }
+                echo 'Installing dependencies...'
+                sh '''
+                export NVM_DIR=$HOME/.nvm
+                . $NVM_DIR/nvm.sh
+                nvm install ${NODE_VERSION}
+                nvm use ${NODE_VERSION}
+                npm install
+                '''
             }
         }
 		
-		stage('Run tests') {
+        stage('Run Tests') {
             steps {
-                node('master') {
-                    sh 'npm test'
-                }
+                echo 'Running tests...'
+                sh '''
+                export NVM_DIR=$HOME/.nvm
+                . $NVM_DIR/nvm.sh
+                nvm use ${NODE_VERSION}
+                npm test
+                '''
             }
         }
 		
         stage('Build') {
             steps {
-                node('master') {
-				    echo 'Building project...'
-                    sh 'npm run build'
-                }
+                echo 'Building project...'
+                sh '''
+                export NVM_DIR=$HOME/.nvm
+                . $NVM_DIR/nvm.sh
+                nvm use ${NODE_VERSION}
+                npm run build
+                '''
             }
         }
 
