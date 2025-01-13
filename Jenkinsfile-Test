@@ -8,25 +8,23 @@ pipeline {
     tools {
         nodejs NODE_VERSION // Указываем Node.js версии 16, должна быть настроена в Jenkins
     }
-	
-	script {
-            sh '''
-            echo "Checking Git Secrets..."
-            git secrets --version || { echo "Git Secrets not installed!"; exit 1; }
-
-            echo "Checking ESLint..."
-            npx eslint --version || { echo "ESLint not installed!"; exit 1; }
-
-            echo "Checking AWS CLI..."
-            aws --version || { echo "AWS CLI not installed!"; exit 1; }
-            '''
-        }
 
     stages {
         stage('Checkout') {
             steps {
                 echo 'Checking out repository...'
                 git branch: 'master', url: 'https://github.com/burhon94/SPA.git'
+				
+				 sh '''
+					echo "Checking Git Secrets..."
+					git secrets --version || { echo "Git Secrets not installed!"; exit 1; }
+
+					echo "Checking ESLint..."
+					npx eslint --version || { echo "ESLint not installed!"; exit 1; }
+
+					echo "Checking AWS CLI..."
+					aws --version || { echo "AWS CLI not installed!"; exit 1; }
+					'''
             }
         }
 
