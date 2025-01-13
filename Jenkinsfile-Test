@@ -2,8 +2,25 @@ pipeline {
     agent any
 
     environment {
-        NODE_VERSION = '16' // Задайте версию Node.js, подходящую для вашего проекта
+        NODE_VERSION = '16' // Версия Node.js
     }
+
+    tools {
+        nodejs NODE_VERSION // Указываем Node.js версии 16, должна быть настроена в Jenkins
+    }
+	
+	script {
+            sh '''
+            echo "Checking Git Secrets..."
+            git secrets --version || { echo "Git Secrets not installed!"; exit 1; }
+
+            echo "Checking ESLint..."
+            npx eslint --version || { echo "ESLint not installed!"; exit 1; }
+
+            echo "Checking AWS CLI..."
+            aws --version || { echo "AWS CLI not installed!"; exit 1; }
+            '''
+        }
 
     stages {
         stage('Checkout') {
@@ -13,65 +30,79 @@ pipeline {
             }
         }
 
-        stage('Git Secrets') {
-			steps {
-				echo 'Checking Git Secrets...'
-			}
-		}
-		
-		stage('Install Dependencies') {
-			steps {
-				echo 'Installing dependencies...'
-			}
-		}
+        stage('Git Secrets') { // Проверка репозитория на утечки секретов
+            steps {
+                echo 'Checking Git Secrets...'
+                sh 'git secrets --scan' // Убедись, что `git-secrets` установлен на узле
+            }
+        }
 
-		stage('Run Tests') {
-			steps {
-				echo 'Running tests...'
-			}
-		}
+        stage('Install Dependencies') { // Установка зависимостей
+            steps {
+                echo 'Installing dependencies...'
+                sh 'npm install'
+            }
+        }
 
-		stage('Build') {
-			steps {
-				echo 'Building project...'
-			}
-		}
+        stage('Run Tests') { // Запуск тестов
+            steps {
+                echo 'Running tests...'
+                sh 'npm test' // Убедись, что в package.json есть скрипт "test"
+            }
+        }
 
-		stage('SAST') {
-			steps {
-				echo 'Running SAST...'
-			}
-		}
+        stage('Build') { // Сборка проекта
+            steps {
+                echo 'Building project...'
+                sh 'npm run build' // Убедись, что в package.json есть скрипт "build"
+            }
+        }
 
-		stage('Deploy To S3') {
-			steps {
-				echo 'Deploying S3...'
-			}
-		}
+        stage('SAST') { // Статический анализ кода
+            steps {
+                echo 'Running SAST...'
+                sh 'npx eslint src/' // Убедись, что eslint установлен и настроен
+            }
+        }
 
-		stage('Post Scan') {
-			steps {
-				echo 'Post scaning...'
-			}
-		}
+        stage('Deploy To S3') { // Развертывание в S3
+            steps {
+                echo 'Deploying to S3...'
+                withAWS(credentials: 's3-access-key', region: 'us-east-1') {
+                    sh 'aws s3 sync ./build s3://your-bucket-name --delete' // Заменить на имя вашего бакета
+                }
+            }
+        }
 
-		stage('DAST') {
-			steps {
-				echo 'Running DAST...'
-			}
-		}
-		
-		stage('Report Analize') {
-			steps {
-				echo 'Reporting...'
-			}
-		}
+        stage('Post Scan') { // Пост-сканирование
+            steps {
+                echo 'Post scanning...'
+                sh 'npx some-post-scan-tool' // Указать реальный инструмент пост-сканирования
+            }
+        }
+
+        stage('DAST') { // Динамический анализ
+            steps {
+                echo 'Running DAST...'
+                sh 'npx some-dast-tool' // Указать реальный инструмент DAST
+            }
+        }
+
+        stage('Report Analyze') { // Генерация отчета и выгрузка в S3
+            steps {
+                echo 'Generating report...'
+                sh 'echo "Report content" > report.txt'
+                withAWS(credentials: 's3-access-key', region: 'us-east-1') {
+                    sh 'aws s3 cp report.txt s3://your-bucket-name/reports/report.txt'
+                }
+            }
+        }
     }
 
     post {
         always {
             echo 'Cleaning up...'
-            cleanWs() // Очищаем рабочую область после выполнения
+            cleanWs() // Очистка рабочей области
         }
         success {
             echo 'Build successful!'
