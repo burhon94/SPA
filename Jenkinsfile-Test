@@ -1,0 +1,83 @@
+pipeline {
+    agent any
+
+    environment {
+        NODE_VERSION = '16' // Задайте версию Node.js, подходящую для вашего проекта
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out repository...'
+                git branch: 'master', url: 'https://github.com/burhon94/SPA.git'
+            }
+        }
+
+        stage('Git Secrets') {
+			steps {
+				echo 'Checking Git Secrets...'
+			}
+		}
+		
+		stage('Install Dependencies') {
+			steps {
+				echo 'Installing dependencies...'
+			}
+		}
+
+		stage('Run Tests') {
+			steps {
+				echo 'Running tests...'
+			}
+		}
+
+		stage('Build') {
+			steps {
+				echo 'Building project...'
+			}
+		}
+
+		stage('SAST') {
+			steps {
+				echo 'Running SAST...'
+			}
+		}
+
+		stage('Deploy To S3') {
+			steps {
+				echo 'Deploying S3...'
+			}
+		}
+
+		stage('Post Scan') {
+			steps {
+				echo 'Post scaning...'
+			}
+		}
+
+		stage('DAST') {
+			steps {
+				echo 'Running DAST...'
+			}
+		}
+		
+		stage('Report Analize') {
+			steps {
+				echo 'Reporting...'
+			}
+		}
+    }
+
+    post {
+        always {
+            echo 'Cleaning up...'
+            cleanWs() // Очищаем рабочую область после выполнения
+        }
+        success {
+            echo 'Build successful!'
+        }
+        failure {
+            echo 'Build failed!'
+        }
+    }
+}
